@@ -1,4 +1,4 @@
-ADDING EACH SYSTEM CALL IN THIS PATH-> "linux-6.9/kernel/sys.c"->
+step1-ADDING EACH SYSTEM CALL IN THIS PATH-> "linux-6.9/kernel/sys.c"->
 
 1)authentication syscall->
 
@@ -127,7 +127,7 @@ SYSCALL_DEFINE1(delete_dir, const char __user *, dirname)
 ------------------------------------------------------------------------------------------------------------
 
 
-DECLARATION OF EACH SYSCALL IN "linux-6.9/include/linux/syscalls.h" ->
+step2-DECLARATION OF EACH SYSCALL IN "linux-6.9/include/linux/syscalls.h" ->
 
 asmlinkage long sys_authenticate_user(const char __user *username, const char __user *password);
 asmlinkage long sys_create_file(const char __user *filename);
@@ -141,12 +141,10 @@ asmlinkage long sys_delete_dir(const char __user *dirname);
 ------------------------------------------------------------------------------------------------------------
 
 
-REGISTER THEM IN  "linux-6.9/arch/x86/entry/syscalls/syscall_64.tbl" ->
+step3-REGISTER THEM IN  "linux-6.9/arch/x86/entry/syscalls/syscall_64.tbl" ->
 
 551  common  authenticate_user  sys_authenticate_user
 552  common  create_file   sys_create_file
 553  common  delete_file   sys_delete_file
 554  common  create_dir    sys_create_dir
 555  common  delete_dir    sys_delete_dir
-
-
