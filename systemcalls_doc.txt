@@ -1,0 +1,152 @@
+ADDING EACH SYSTEM CALL IN THIS PATH-> "linux-6.9/kernel/sys.c"->
+
+1)authentication syscall->
+
+SYSCALL_DEFINE2(authenticate_user, const char __user *, username, const char __user *, password)
+{
+    char kusername[100];
+    char kpassword[100];
+
+    if (copy_from_user(kusername, username, sizeof(kusername)) != 0 ||
+        copy_from_user(kpassword, password, sizeof(kpassword)) != 0) {
+        printk(KERN_INFO "[AuthSyscall] Failed to copy data from user\n");
+        return -EFAULT;
+    }
+
+    kusername[sizeof(kusername)-1] = '\0';
+    kpassword[sizeof(kpassword)-1] = '\0';
+
+    printk(KERN_INFO "[AuthSyscall] Username: %s, Password: %s\n", kusername, kpassword);
+
+    // Simple hardcoded check (for demo)
+    if (strcmp(kusername, "admin") == 0 && strcmp(kpassword, "pass123") == 0) {
+        printk(KERN_INFO "[AuthSyscall] Authentication successful!\n");
+        return 0;
+    } else {
+        printk(KERN_INFO "[AuthSyscall] Authentication failed.\n");
+        return -1;
+    }
+}
+
+
+2)file creation syscall->
+
+SYSCALL_DEFINE1(create_file, const char __user *, filename)
+{
+    char kfilename[256];
+    struct file *filp;
+
+    if (copy_from_user(kfilename, filename, sizeof(kfilename)))
+        return -EFAULT;
+
+    filp = filp_open(kfilename, O_CREAT | O_WRONLY, 0644);
+    if (IS_ERR(filp)) {
+        printk(KERN_INFO "[Syscall] File creation failed: %s\n", kfilename);
+        return PTR_ERR(filp);
+    }
+
+    printk(KERN_INFO "[Syscall] File created: %s\n", kfilename);
+    filp_close(filp, NULL);
+    return 0;
+}
+
+
+3)file deletion syscall->
+
+SYSCALL_DEFINE1(delete_file, const char __user *, filename)
+{
+    char kfilename[256];
+
+    if (copy_from_user(kfilename, filename, sizeof(kfilename)))
+        return -EFAULT;
+
+    if (vfs_unlink(d_inode(current->fs->pwd.dentry), 
+                   lookup_one_len(kfilename, current->fs->pwd.dentry, strlen(kfilename)), 
+                   NULL) != 0) {
+        printk(KERN_INFO "[Syscall] Failed to delete file: %s\n", kfilename);
+        return -ENOENT;
+    }
+
+    printk(KERN_INFO "[Syscall] File deleted: %s\n", kfilename);
+    return 0;
+}
+
+
+4)directory creation syscall
+
+SYSCALL_DEFINE1(create_dir, const char __user *, dirname)
+{
+    char kdirname[256];
+    mm_segment_t old_fs;
+    int ret;
+
+    if (copy_from_user(kdirname, dirname, sizeof(kdirname)))
+        return -EFAULT;
+
+    old_fs = get_fs();
+    set_fs(KERNEL_DS);
+    ret = sys_mkdir(kdirname, 0755);
+    set_fs(old_fs);
+
+    if (ret != 0) {
+        printk(KERN_INFO "[Syscall] Directory creation failed: %s\n", kdirname);
+        return ret;
+    }
+
+    printk(KERN_INFO "[Syscall] Directory created: %s\n", kdirname);
+    return 0;
+}
+
+5)delete directory
+
+SYSCALL_DEFINE1(delete_dir, const char __user *, dirname)
+{
+    char kdirname[256];
+    mm_segment_t old_fs;
+    int ret;
+
+    if (copy_from_user(kdirname, dirname, sizeof(kdirname)))
+        return -EFAULT;
+
+    old_fs = get_fs();
+    set_fs(KERNEL_DS);
+    ret = sys_rmdir(kdirname);
+    set_fs(old_fs);
+
+    if (ret != 0) {
+        printk(KERN_INFO "[Syscall] Failed to delete directory: %s\n", kdirname);
+        return ret;
+    }
+
+    printk(KERN_INFO "[Syscall] Directory deleted: %s\n", kdirname);
+    return 0;
+}
+
+
+------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------
+
+
+DECLARATION OF EACH SYSCALL IN "linux-6.9/include/linux/syscalls.h" ->
+
+asmlinkage long sys_authenticate_user(const char __user *username, const char __user *password);
+asmlinkage long sys_create_file(const char __user *filename);
+asmlinkage long sys_delete_file(const char __user *filename);
+asmlinkage long sys_create_dir(const char __user *dirname);
+asmlinkage long sys_delete_dir(const char __user *dirname);
+
+
+
+------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------
+
+
+REGISTER THEM IN  "linux-6.9/arch/x86/entry/syscalls/syscall_64.tbl" ->
+
+551  common  authenticate_user  sys_authenticate_user
+552  common  create_file   sys_create_file
+553  common  delete_file   sys_delete_file
+554  common  create_dir    sys_create_dir
+555  common  delete_dir    sys_delete_dir
+
+
