@@ -1,7 +1,11 @@
 #include <stdio.h>
-#include "../../includes/file_management.h"
-#include "../../syscalls/syscall_wrappers.h"
+#include <unistd.h>
+#include "folder_ops.h"
 
-int delete_folder(const char *foldername) {
-    return syscall_delete_folder(foldername);
+void delete_folder(const char *dirname) {
+    if (rmdir(dirname) == -1) {
+        perror("Folder deletion failed");
+        return;
+    }
+    printf("Folder %s deleted successfully.\n", dirname);
 }

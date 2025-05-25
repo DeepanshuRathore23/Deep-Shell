@@ -1,7 +1,11 @@
 #include <stdio.h>
-#include "../../includes/file_management.h"
-#include "../../syscalls/syscall_wrappers.h"
+#include <sys/stat.h>
+#include "folder_ops.h"
 
-int create_folder(const char *foldername) {
-    return syscall_create_folder(foldername);
+void create_folder(const char *dirname) {
+    if (mkdir(dirname, 0755) == -1) {
+        perror("Folder creation failed");
+        return;
+    }
+    printf("Folder %s created successfully.\n", dirname);
 }

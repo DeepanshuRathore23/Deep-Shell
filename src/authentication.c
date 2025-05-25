@@ -1,7 +1,19 @@
 #include <stdio.h>
-#include "../../includes/authentication.h"
-#include "../../syscalls/syscall_wrappers.h"
+#include <string.h>
+#include "auth.h"
 
-int authenticate_user(const char *username, const char *password) {
-    return syscall_authenticate(username, password);
+int authenticate() {
+    char username[32], password[32];
+    printf("Username: ");
+    scanf("%s", username);
+    printf("Password: ");
+    scanf("%s", password);
+
+    if (strcmp(username, "admin") == 0 && strcmp(password, "root") == 0) {
+        printf("Login successful!\n");
+        return 1;
+    }
+
+    printf("Authentication failed.\n");
+    return 0;
 }

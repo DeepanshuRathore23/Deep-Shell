@@ -1,7 +1,11 @@
 #include <stdio.h>
-#include "../../includes/file_management.h"
-#include "../../syscalls/syscall_wrappers.h"
+#include <unistd.h>
+#include "file_ops.h"
 
-int delete_file(const char *filename) {
-    return syscall_delete_file(filename);
+void delete_file(const char *filename) {
+    if (unlink(filename) == -1) {
+        perror("File deletion failed");
+        return;
+    }
+    printf("File %s deleted successfully.\n", filename);
 }
